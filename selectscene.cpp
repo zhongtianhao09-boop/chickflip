@@ -18,7 +18,7 @@ SelectScene::SelectScene(QWidget *parent)
     for(int i=0;i<20;i++){
         MyPushButton *btn=new MyPushButton(":/res/9.jpg",":/res/9.jpg",this);
         btn->setText(QString::number(i+1));
-        btn->setStyleSheet("QPushButton{color:whit;}");
+        btn->setStyleSheet("QPushButton{color:white;font-weight:bold;}");
         int row=i/4;
         int col=i%4;
         int x=col*clowidth+xoffset;
@@ -28,9 +28,11 @@ SelectScene::SelectScene(QWidget *parent)
         connect(btn,&MyPushButton::clicked,[=](){
             PlayScene *playScene=new PlayScene(i+1);
             playScene->setAttribute(Qt::WA_DeleteOnClose);
+            playScene->move(this->pos());
             playScene->show();
             this->hide();
             connect(playScene,&PlayScene::backbtnclicked,[=](){
+                this->move(playScene->pos());
                 this->show();
                 playScene->close();
             });
@@ -38,6 +40,7 @@ SelectScene::SelectScene(QWidget *parent)
     };
 }
 void SelectScene::paintEvent(QPaintEvent *event){
+    Q_UNUSED(event);
     QPainter painter(this);
     QPixmap pix(":/res/20.png");
     painter.drawPixmap(0,0,this->width(),this->height(),pix);

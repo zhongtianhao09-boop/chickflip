@@ -16,9 +16,9 @@ public:
     void moveup();
     void movedown();
 protected:
-    void paintEvent(QPaintEvent *event);
-    void mousePressedEvent(QMouseEvent *e);
-    void mouseReleaseEvent(QMouseEvent *e);
+    void paintEvent(QPaintEvent *event) override;
+    void mousePressEvent(QMouseEvent *e) override;
+    void mouseReleaseEvent(QMouseEvent *e) override;
 signals:
 private:
     //正常图片

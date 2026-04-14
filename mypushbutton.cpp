@@ -8,15 +8,14 @@ MyPushButton::MyPushButton(QString normalImg,QString pressedImg,QWidget *parent)
     mstate=Normal;
 };
 void MyPushButton::paintEvent(QPaintEvent *event){
+    Q_UNUSED(event);
     QPainter painter(this);
-    QPixmap pix(":/res/14.jpg");
-    if(mstate==Normal){
-        pix.load(mNormalImg);
-    };
+    QPixmap pix;
     if(mstate==Pressed){
         pix.load(mPressedImg);
-    };
-    pix.load(mNormalImg);
+    } else {
+        pix.load(mNormalImg);
+    }
     painter.drawPixmap(0,0,this->width(),this->height(),pix);
     painter.drawText(0,0,this->width(),this->height(),Qt::AlignHCenter|Qt::AlignVCenter,this->text());
 };
@@ -34,7 +33,7 @@ void MyPushButton::moveup(){
     animation->setDuration(100);
     animation->start(QAbstractAnimation::DeleteWhenStopped);
 };
-void MyPushButton::mousePressedEvent(QMouseEvent *e){
+void MyPushButton::mousePressEvent(QMouseEvent *e){
     this->mstate=Pressed;
     update();
     QPushButton::mousePressEvent(e);

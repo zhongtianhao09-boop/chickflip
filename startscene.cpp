@@ -3,7 +3,6 @@
 #include <QPainter>
 #include <QTimer>
 #include "mypushbutton.h"
-#include <QMediaPlayer>
 StartScene::StartScene(QWidget *parent)
     : MyMainWindow{parent}
 {

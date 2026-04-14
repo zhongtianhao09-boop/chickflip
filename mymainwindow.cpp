@@ -16,8 +16,9 @@ MyMainWindow::~MyMainWindow()
     delete ui;
 };
 void MyMainWindow::paintEvent(QPaintEvent *event){
+    Q_UNUSED(event);
     QPainter painter(this);
-    QPixmap pix(":/res/20.png");
+    static const QPixmap pix(":/res/20.png");
     painter.drawPixmap(0,0,this->width(),this->height(),pix);
 
 };

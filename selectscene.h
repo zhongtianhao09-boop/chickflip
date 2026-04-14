@@ -11,7 +11,7 @@ public:
 signals:
     void backbtnclicked();
 protected:
-    void paintEvent(QPaintEvent *evet);
+    void paintEvent(QPaintEvent *event) override;
 };
 
 #endif // SELECTSCENE_H

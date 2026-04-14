@@ -2,8 +2,7 @@
 #define COINBUTTON_H
 
 #include <QWidget>
-#include <QPushbutton>
-#include <QTimer>
+#include <QPushButton>
 class CoinButton : public QPushButton
 {
     Q_OBJECT
@@ -16,10 +15,8 @@ public:
 signals:
 private:
     int mState;
-    int mFrame;
-    QTimer mTimer;
 protected:
-    void paintEvent(QPaintEvent *event);
+    void paintEvent(QPaintEvent *event) override;
 };
 
 #endif // COINBUTTON_H

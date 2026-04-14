@@ -5,14 +5,22 @@
 #include "coinbutton.h"
 #include "dataconfig.h"
 #include <QTimer>
-#include <QMessageBox>
-#include <QDebug>
-#include <QLabel>
 #include <QPropertyAnimation>
+#include <QMap>
+void PlayScene::setBoardEnabled(bool enabled){
+    for(int row=0;row<4;row++){
+        for(int col=0;col<4;col++){
+            mCoins[row][col]->setEnabled(enabled);
+        }
+    }
+}
+
 void PlayScene::flip(int row,int clo){
-    if(mhaswin){
+    if(mhaswin || mIsFlipping){
         return;
     }
+    mIsFlipping = true;
+    setBoardEnabled(false);
     this->mCoins[row][clo]->flip();
     QTimer::singleShot(30,[=](){
     if(row+1<4){
@@ -24,6 +32,10 @@ void PlayScene::flip(int row,int clo){
     if(clo-1>=0){
         this->mCoins[row][clo-1]->flip();}
       this->judgeWin();
+      if(!mhaswin){
+          mIsFlipping = false;
+          setBoardEnabled(true);
+      }
     });
 };
 void PlayScene::judgeWin(){
@@ -34,31 +46,29 @@ void PlayScene::judgeWin(){
             }
         }
     };
-    QPixmap pix = QPixmap(":/res/7.jpg");
-    qreal scale = 0.5; // 0.5 = 50%大小，0.3=30%，0.6=60%，直接改这个数
+    static const QPixmap pix(":/res/7.jpg");
+    qreal scale = 0.5;
     QPixmap scaledPix = pix.scaled(
         pix.width() * scale,
         pix.height() * scale,
-        Qt::KeepAspectRatio,       // 保持宽高比，字体不变形
-        Qt::SmoothTransformation  // 平滑缩放，保证字体清晰
+        Qt::KeepAspectRatio,
+        Qt::SmoothTransformation
         );
     mhaswin=true;
-    // 2. 给 labelWin 设置缩放后的图片，同步大小
-    QLabel *labelWin = new QLabel(this);
-    labelWin->setPixmap(scaledPix);
-    labelWin->resize(scaledPix.size()); // 标签大小 = 缩放后图片大小
-
-    // 3. 修正动画位置（适配缩小后的尺寸，保证居中）
+    if (!mWinLabel) {
+        mWinLabel = new QLabel(this);
+    }
+    mWinLabel->setPixmap(scaledPix);
+    mWinLabel->resize(scaledPix.size());
     int startY = -scaledPix.height();
     int endY = this->height() / 2 - scaledPix.height() / 2;
-    labelWin->move(this->width() / 2 - scaledPix.width() / 2, startY);
-    labelWin->show();
-    labelWin->raise(); // 置顶，不被按钮挡住
+    mWinLabel->move(this->width() / 2 - scaledPix.width() / 2, startY);
+    mWinLabel->show();
+    mWinLabel->raise();
 
-    // 4. 动画代码（同步缩放后的尺寸）
-    QPropertyAnimation *animation = new QPropertyAnimation(labelWin, "geometry", this);
-    animation->setDuration(500); // 0.5秒动画
-    animation->setStartValue(labelWin->geometry());
+    QPropertyAnimation *animation = new QPropertyAnimation(mWinLabel, "geometry", this);
+    animation->setDuration(500);
+    animation->setStartValue(mWinLabel->geometry());
     animation->setEndValue(QRect(
         this->width() / 2 - scaledPix.width() / 2,
         endY,
@@ -67,19 +77,19 @@ void PlayScene::judgeWin(){
         ));
     animation->setEasingCurve(QEasingCurve::OutQuad);
     animation->start(QAbstractAnimation::DeleteWhenStopped);
-    connect(animation, &QPropertyAnimation::finished,[=](){
-        QTimer::singleShot(2000, labelWin, &QLabel::deleteLater);
-    });
 };
 PlayScene::PlayScene(int level,QWidget *parent)
     : MyMainWindow{parent}
-{   mhaswin=false;
+{
+    mhaswin=false;
+    mIsFlipping=false;
+    mWinLabel=nullptr;
     MyPushButton *btnback=new MyPushButton(":/res/221.jpg",":/res/21.jpg",this);
     btnback->resize(72,32);
     connect(btnback,&MyPushButton::clicked,this,&PlayScene::backbtnclicked);
     btnback->move(this->width()-btnback->width(),this->height()-btnback->height());
     QLabel *label=new QLabel(this);
-    label->setText(QString("Level: %1").arg(level));
+    label->setText(QString("Level: %1").arg(safeLevel));
     label->move(30,this->height()-label->height());
     label->setFont(QFont("华文新魏",20));
     label->resize(150,50);
@@ -88,7 +98,8 @@ PlayScene::PlayScene(int level,QWidget *parent)
     const int xoffset=57;
     const int yoffset=200;
     dataConfig data;
-    QVector <QVector<int>>dataArray=data.mData[level];
+    const int safeLevel = data.mData.contains(level) ? level : 1;
+    QVector <QVector<int>>dataArray=data.mData[safeLevel];
     for(int row=0;row<4;row++){
         for(int col=0;col<4;col++){
             CoinButton *btn=new CoinButton(this);
@@ -104,7 +115,8 @@ PlayScene::PlayScene(int level,QWidget *parent)
     }
 };
 void PlayScene::paintEvent(QPaintEvent *event){
+    Q_UNUSED(event);
     QPainter painter(this);
-    QPixmap pix(":/res/20.png");
+    static const QPixmap pix(":/res/20.png");
     painter.drawPixmap(0,0,this->width(),this->height(),pix);
 };

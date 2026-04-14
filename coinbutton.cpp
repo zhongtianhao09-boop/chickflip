@@ -22,8 +22,8 @@ void CoinButton::setState(int stat)
 };
 void CoinButton::paintEvent(QPaintEvent *ev){
     QPainter painter(this);
-    QPixmap pix;
-    pix.load(":/res/31.jpg");
+    static const QPixmap baseSlot(":/res/31.jpg");
+    QPixmap pix = baseSlot;
     painter.drawPixmap(0,0,this->width(),this->height(),pix);
     QPushButton::paintEvent(ev);
 }

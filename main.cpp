@@ -10,5 +10,5 @@ int main(int argc, char *argv[])
     // 开始场景
     StartScene sc;
     sc.show();
-    return QCoreApplication::exec();
+    return a.exec();
 }
