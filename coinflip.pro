@@ -10,6 +10,7 @@ CONFIG += c++17
 SOURCES += \
     coinbutton.cpp \
     dataconfig.cpp \
+    gamesessionmanager.cpp \
     main.cpp \
     mymainwindow.cpp \
     mypushbutton.cpp \
@@ -21,6 +22,7 @@ SOURCES += \
 HEADERS += \
     coinbutton.h \
     dataconfig.h \
+    gamesessionmanager.h \
     mymainwindow.h \
     mypushbutton.h \
     playscene.h \

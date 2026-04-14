@@ -1,11 +1,27 @@
 #include "mypushbutton.h"
 #include <QPainter>
 #include <QPropertyAnimation>
+#include <QSoundEffect>
+#include <QUrl>
+
+QSoundEffect *MyPushButton::sClickSound = nullptr;
+
+void MyPushButton::ensureClickSound(){
+    if(sClickSound){
+        return;
+    }
+    sClickSound = new QSoundEffect();
+    sClickSound->setSource(QUrl("qrc:/res/9734.wav"));
+    sClickSound->setLoopCount(1);
+    sClickSound->setVolume(0.35f);
+}
+
 MyPushButton::MyPushButton(QString normalImg,QString pressedImg,QWidget *parent)
     : QPushButton(parent)
     ,mNormalImg(normalImg)
     ,mPressedImg(pressedImg){
     mstate=Normal;
+    ensureClickSound();
 };
 void MyPushButton::paintEvent(QPaintEvent *event){
     Q_UNUSED(event);
@@ -36,6 +52,9 @@ void MyPushButton::moveup(){
 void MyPushButton::mousePressEvent(QMouseEvent *e){
     this->mstate=Pressed;
     update();
+    if(sClickSound){
+        sClickSound->play();
+    }
     QPushButton::mousePressEvent(e);
 };
 void MyPushButton::mouseReleaseEvent(QMouseEvent *e){

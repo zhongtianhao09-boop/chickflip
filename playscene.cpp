@@ -1,12 +1,27 @@
 #include "playscene.h"
 #include "mypushbutton.h"
+#include "gamesessionmanager.h"
 #include <QPainter>
 #include <QLabel>
 #include "coinbutton.h"
 #include "dataconfig.h"
 #include <QTimer>
 #include <QPropertyAnimation>
-#include <QMap>
+#include <QFrame>
+#include <QSoundEffect>
+#include <QUrl>
+
+int PlayScene::totalScore(){
+    return GameSessionManager::currentScore();
+}
+
+void PlayScene::updateHud(){
+    mLevelLabel->setText(QString("LEVEL %1").arg(mLevel));
+    mScoreLabel->setText(QString("SCORE %1").arg(GameSessionManager::currentScore()));
+    mTimerLabel->setText(QString("TIME %1")
+                             .arg(GameSessionManager::formatTime(GameSessionManager::currentTimeSeconds() + mElapsedSeconds)));
+}
+
 void PlayScene::setBoardEnabled(bool enabled){
     for(int row=0;row<4;row++){
         for(int col=0;col<4;col++){
@@ -21,8 +36,11 @@ void PlayScene::flip(int row,int clo){
     }
     mIsFlipping = true;
     setBoardEnabled(false);
+    if(mFlipSound){
+        mFlipSound->play();
+    }
     this->mCoins[row][clo]->flip();
-    QTimer::singleShot(220,[=](){
+    QTimer::singleShot(220, this, [this, row, clo](){
     if(row+1<4){
         this->mCoins[row+1][clo]->flip();}
     if(row-1>=0){
@@ -55,6 +73,15 @@ void PlayScene::judgeWin(){
         Qt::SmoothTransformation
         );
     mhaswin=true;
+    mGameTimer->stop();
+    if(mWinSound){
+        mWinSound->play();
+    }
+    if(!mResultCommitted){
+        GameSessionManager::addLevelResult(5, mElapsedSeconds);
+        mResultCommitted = true;
+    }
+    updateHud();
     if (!mWinLabel) {
         mWinLabel = new QLabel(this);
     }
@@ -77,28 +104,77 @@ void PlayScene::judgeWin(){
         ));
     animation->setEasingCurve(QEasingCurve::OutQuad);
     animation->start(QAbstractAnimation::DeleteWhenStopped);
+    QTimer::singleShot(2000, this, [this](){
+        emit backbtnclicked();
+    });
 };
 PlayScene::PlayScene(int level,QWidget *parent)
     : MyMainWindow{parent}
 {
+    mLevel = level;
+    mElapsedSeconds = 0;
     mhaswin=false;
     mIsFlipping=false;
     mWinLabel=nullptr;
+    mLevelLabel=nullptr;
+    mScoreLabel=nullptr;
+    mTimerLabel=nullptr;
+    mGameTimer=new QTimer(this);
+    mFlipSound = new QSoundEffect(this);
+    mFlipSound->setSource(QUrl("qrc:/res/xm2951.wav"));
+    mFlipSound->setLoopCount(1);
+    mFlipSound->setVolume(0.35f);
+    mWinSound = new QSoundEffect(this);
+    mWinSound->setSource(QUrl("qrc:/res/9734.wav"));
+    mWinSound->setLoopCount(1);
+    mWinSound->setVolume(0.55f);
+    mResultCommitted = false;
+
+    QFrame *topBar = new QFrame(this);
+    topBar->setGeometry(12, 12, this->width()-24, 70);
+    topBar->setStyleSheet("QFrame{background:rgba(8,20,40,170);border:1px solid rgba(255,255,255,60);border-radius:12px;}");
+
+    mLevelLabel = new QLabel(topBar);
+    mScoreLabel = new QLabel(topBar);
+    mTimerLabel = new QLabel(topBar);
+    mLevelLabel->setGeometry(12, 14, 86, 42);
+    mScoreLabel->setGeometry(102, 14, 98, 42);
+    mTimerLabel->setGeometry(204, 14, 80, 42);
+    const QString hudStyle = "QLabel{color:#F6F8FF;font:700 12px 'Segoe UI';background:transparent;}";
+    mLevelLabel->setStyleSheet(hudStyle);
+    mScoreLabel->setStyleSheet(hudStyle);
+    mTimerLabel->setStyleSheet(hudStyle);
+    mLevelLabel->setAlignment(Qt::AlignCenter);
+    mScoreLabel->setAlignment(Qt::AlignCenter);
+    mTimerLabel->setAlignment(Qt::AlignCenter);
+
+    connect(mGameTimer,&QTimer::timeout,this,[this](){
+        ++mElapsedSeconds;
+        updateHud();
+    });
+    mGameTimer->start(1000);
+
+    updateHud();
+
     MyPushButton *btnback=new MyPushButton(":/res/221.jpg",":/res/21.jpg",this);
     btnback->resize(72,32);
-    connect(btnback,&MyPushButton::clicked,this,&PlayScene::backbtnclicked);
-    btnback->move(this->width()-btnback->width(),this->height()-btnback->height());
-    QLabel *label=new QLabel(this);
-    label->setText(QString("Level: %1").arg(safeLevel));
-    label->move(30,this->height()-label->height());
-    label->setFont(QFont("华文新魏",20));
-    label->resize(150,50);
+    connect(btnback,&MyPushButton::clicked,this,[this](){
+        mGameTimer->stop();
+        if(!mResultCommitted){
+            GameSessionManager::addLevelResult(0, mElapsedSeconds);
+            mResultCommitted = true;
+        }
+        emit backbtnclicked();
+    });
+    btnback->move(this->width()-btnback->width()-10,this->height()-btnback->height()-10);
+    dataConfig data;
+    const int safeLevel = data.mData.contains(level) ? level : 1;
+    mLevel = safeLevel;
+    updateHud();
     const int clowidth=50;
     const int rowHeight=50;
     const int xoffset=57;
-    const int yoffset=200;
-    dataConfig data;
-    const int safeLevel = data.mData.contains(level) ? level : 1;
+    const int yoffset=220;
     QVector <QVector<int>>dataArray=data.mData[safeLevel];
     for(int row=0;row<4;row++){
         for(int col=0;col<4;col++){

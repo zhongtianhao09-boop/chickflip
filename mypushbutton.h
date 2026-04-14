@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QPushButton>
+class QSoundEffect;
 
 class MyPushButton : public QPushButton
 {
@@ -21,6 +22,8 @@ protected:
     void mouseReleaseEvent(QMouseEvent *e) override;
 signals:
 private:
+    static QSoundEffect *sClickSound;
+    static void ensureClickSound();
     //正常图片
     //鼠标按下图片
     QString mNormalImg;

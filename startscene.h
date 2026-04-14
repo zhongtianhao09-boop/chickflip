@@ -10,6 +10,7 @@ class StartScene : public MyMainWindow
 public:
     explicit StartScene(QWidget *parent = nullptr);
 private:
+    void showLeaderboardDialog();
     SelectScene mSelectScene;
 signals:
 };

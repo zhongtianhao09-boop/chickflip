@@ -3,6 +3,7 @@
 
 #include <QMainWindow>
 #include "mymainwindow.h"
+class QLabel;
 class SelectScene : public MyMainWindow
 {
     Q_OBJECT
@@ -12,6 +13,10 @@ signals:
     void backbtnclicked();
 protected:
     void paintEvent(QPaintEvent *event) override;
+    void showEvent(QShowEvent *event) override;
+private:
+    void updateScoreBoard();
+    QLabel *mScoreBoard;
 };
 
 #endif // SELECTSCENE_H
