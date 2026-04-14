@@ -22,7 +22,7 @@ void PlayScene::flip(int row,int clo){
     mIsFlipping = true;
     setBoardEnabled(false);
     this->mCoins[row][clo]->flip();
-    QTimer::singleShot(30,[=](){
+    QTimer::singleShot(220,[=](){
     if(row+1<4){
         this->mCoins[row+1][clo]->flip();}
     if(row-1>=0){

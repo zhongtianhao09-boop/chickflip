@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include <QPushButton>
+#include <QTimer>
 class CoinButton : public QPushButton
 {
     Q_OBJECT
@@ -14,7 +15,11 @@ public:
     void flip();
 signals:
 private:
+    void updateFlipFrame();
     int mState;
+    int mAnimStep;
+    bool mIsFlipping;
+    QTimer mFlipTimer;
 protected:
     void paintEvent(QPaintEvent *event) override;
 };
